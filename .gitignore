@@ -1,0 +1,15 @@
+# Build output
+target/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+
+# Local upload storage
+uploads/
+
+# Logs
+*.log

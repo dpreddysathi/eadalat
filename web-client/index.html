@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-Adalat — Online Dispute Resolution</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+  <header id="topbar" class="hidden">
+    <div class="brand">⚖️ e-Adalat</div>
+    <nav>
+      <a href="#/cases">My Cases</a>
+      <a href="#/cases/new">File a Case</a>
+      <button id="notif-btn" class="icon-btn" title="Notifications">🔔 <span id="notif-count" class="badge hidden">0</span></button>
+      <span id="user-chip" class="user-chip"></span>
+      <button id="logout-btn" class="btn btn-ghost">Logout</button>
+    </nav>
+  </header>
+
+  <div id="notif-panel" class="notif-panel hidden">
+    <div class="notif-panel-head">
+      <strong>Notifications</strong>
+      <button id="notif-close" class="icon-btn">✕</button>
+    </div>
+    <div id="notif-list" class="notif-list"></div>
+  </div>
+
+  <main id="app">
+    <!-- Auth -->
+    <section id="view-auth" class="view">
+      <div class="auth-card">
+        <h1>⚖️ e-Adalat</h1>
+        <p class="muted">Online Dispute Resolution Platform</p>
+        <div class="tabs">
+          <button id="tab-login" class="tab active">Login</button>
+          <button id="tab-register" class="tab">Register</button>
+        </div>
+        <form id="login-form" class="stack">
+          <input id="login-email" type="email" placeholder="Email" required autocomplete="email" />
+          <input id="login-password" type="password" placeholder="Password" required autocomplete="current-password" />
+          <button class="btn btn-primary" type="submit">Login</button>
+        </form>
+        <form id="register-form" class="stack hidden">
+          <input id="reg-name" type="text" placeholder="Full name" required autocomplete="name" />
+          <input id="reg-email" type="email" placeholder="Email" required autocomplete="email" />
+          <input id="reg-password" type="password" placeholder="Password" required autocomplete="new-password" />
+          <select id="reg-role">
+            <option value="CITIZEN">Citizen</option>
+            <option value="LAWYER">Lawyer</option>
+            <option value="JUDGE">Judge</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Register</button>
+        </form>
+        <p id="auth-error" class="error hidden"></p>
+        <p class="muted small">Demo: admin@eadalat.local / admin123</p>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="view-dashboard" class="view hidden">
+      <div class="page-head">
+        <h2>My Cases</h2>
+        <a class="btn btn-primary" href="#/cases/new">+ File a Case</a>
+      </div>
+      <div id="case-list" class="cards"></div>
+    </section>
+
+    <!-- File a case -->
+    <section id="view-filecase" class="view hidden">
+      <div class="page-head"><h2>File a New Case</h2></div>
+      <form id="filecase-form" class="card stack">
+        <input id="fc-title" type="text" placeholder="Case title" required />
+        <input id="fc-category" type="text" placeholder="Category (e.g. consumer, property, loan)" />
+        <textarea id="fc-description" rows="6" placeholder="Describe the dispute..." required></textarea>
+        <button class="btn btn-primary" type="submit">Submit Case</button>
+      </form>
+      <p id="filecase-error" class="error hidden"></p>
+    </section>
+
+    <!-- Case detail -->
+    <section id="view-case" class="view hidden">
+      <a href="#/cases" class="back-link">‹ Back to cases</a>
+      <div id="case-detail"></div>
+    </section>
+
+    <!-- Hearing room -->
+    <section id="view-hearing" class="view hidden">
+      <div class="page-head">
+        <h2>🎥 Hearing Room</h2>
+        <div>
+          <span id="room-label" class="pill"></span>
+          <button id="leave-room-btn" class="btn btn-danger">Leave</button>
+        </div>
+      </div>
+      <div class="videos">
+        <div class="video-wrap">
+          <video id="local-video" autoplay muted playsinline></video>
+          <span class="video-label">You</span>
+        </div>
+        <div class="video-wrap">
+          <video id="remote-video" autoplay playsinline></video>
+          <span class="video-label">Remote</span>
+        </div>
+      </div>
+      <p id="room-status" class="muted">Connecting…</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>

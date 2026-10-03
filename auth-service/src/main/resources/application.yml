@@ -1,0 +1,26 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/eadalat_auth?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+# JWT secret: set the JWT_SECRET env var in production.
+app:
+  jwt:
+    secret: ${JWT_SECRET:eadalat-dev-secret-change-in-prod-min-32-chars!!}
+    expiry-ms: 86400000 # 24h
+
+logging:
+  level:
+    com.eadalat.auth: INFO

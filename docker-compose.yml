@@ -1,0 +1,196 @@
+version: "3.8"
+
+# e-Adalat Online Dispute Resolution platform — local dev stack.
+# Copy env examples:  MYSQL_ROOT_PASSWORD, JWT_SECRET, KAFKA_CLUSTER_ID are optional
+# (sensible dev defaults below); override them in a .env file for production.
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-I0PjR2sWTa6mX9dB8cF1eQ}
+    ports:
+      - "9092:9092"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./gateway/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      CASE_SERVICE_URL: http://case-service:8082
+      SCHEDULING_SERVICE_URL: http://scheduling-service:8083
+      DOCUMENT_SERVICE_URL: http://document-service:8084
+      NOTIFICATION_SERVICE_URL: http://notification-service:8085
+      HEARING_SERVICE_URL: http://hearing-service:8086
+    depends_on:
+      auth-service:
+        condition: service_started
+      case-service:
+        condition: service_started
+      scheduling-service:
+        condition: service_started
+      document-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      hearing-service:
+        condition: service_started
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eadalat_auth?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  case-service:
+    build:
+      context: .
+      dockerfile: ./case-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eadalat_cases?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  scheduling-service:
+    build:
+      context: .
+      dockerfile: ./scheduling-service/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eadalat_scheduling?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  document-service:
+    build:
+      context: .
+      dockerfile: ./document-service/Dockerfile
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eadalat_documents?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      REDIS_HOST: redis
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - uploads-data:/data/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: ./notification-service/Dockerfile
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eadalat_notifications?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  hearing-service:
+    build:
+      context: .
+      dockerfile: ./hearing-service/Dockerfile
+    ports:
+      - "8086:8086"
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-eadalat-dev-secret-change-in-prod-min-32-chars!!}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_started
+
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./web-client:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      gateway:
+        condition: service_started
+
+volumes:
+  mysql-data:
+  uploads-data:

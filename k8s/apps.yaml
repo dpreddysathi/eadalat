@@ -1,0 +1,439 @@
+# e-Adalat app services on Kubernetes.
+# NOTE: images below are placeholders — build each module image and push to
+# your registry, then replace `eadalat/<name>:latest` with the real image.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jwt-secret
+  namespace: eadalat
+type: Opaque
+stringData:
+  jwt-secret: eadalat-dev-secret-change-in-prod-min-32-chars!!
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads-pvc
+  namespace: eadalat
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: eadalat
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: eadalat/gateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:8081
+            - name: CASE_SERVICE_URL
+              value: http://case-service:8082
+            - name: SCHEDULING_SERVICE_URL
+              value: http://scheduling-service:8083
+            - name: DOCUMENT_SERVICE_URL
+              value: http://document-service:8084
+            - name: NOTIFICATION_SERVICE_URL
+              value: http://notification-service:8085
+            - name: HEARING_SERVICE_URL
+              value: http://hearing-service:8086
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: eadalat
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: eadalat
+  labels:
+    app: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: eadalat/auth-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.eadalat.svc.cluster.local:3306/eadalat_auth?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.eadalat.svc.cluster.local:9092
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: eadalat
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: case-service
+  namespace: eadalat
+  labels:
+    app: case-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: case-service
+  template:
+    metadata:
+      labels:
+        app: case-service
+    spec:
+      containers:
+        - name: case-service
+          image: eadalat/case-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.eadalat.svc.cluster.local:3306/eadalat_cases?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.eadalat.svc.cluster.local:9092
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: case-service
+  namespace: eadalat
+spec:
+  selector:
+    app: case-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduling-service
+  namespace: eadalat
+  labels:
+    app: scheduling-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduling-service
+  template:
+    metadata:
+      labels:
+        app: scheduling-service
+    spec:
+      containers:
+        - name: scheduling-service
+          image: eadalat/scheduling-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.eadalat.svc.cluster.local:3306/eadalat_scheduling?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.eadalat.svc.cluster.local:9092
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scheduling-service
+  namespace: eadalat
+spec:
+  selector:
+    app: scheduling-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+  namespace: eadalat
+  labels:
+    app: document-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-service
+  template:
+    metadata:
+      labels:
+        app: document-service
+    spec:
+      containers:
+        - name: document-service
+          image: eadalat/document-service:latest
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.eadalat.svc.cluster.local:3306/eadalat_documents?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.eadalat.svc.cluster.local:9092
+            - name: REDIS_HOST
+              value: redis.eadalat.svc.cluster.local
+            - name: UPLOAD_DIR
+              value: /data/uploads
+          volumeMounts:
+            - name: uploads
+              mountPath: /data/uploads
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: eadalat
+spec:
+  selector:
+    app: document-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: eadalat
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: eadalat/notification-service:latest
+          ports:
+            - containerPort: 8085
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql.eadalat.svc.cluster.local:3306/eadalat_notifications?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.eadalat.svc.cluster.local:9092
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: eadalat
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 8085
+      targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hearing-service
+  namespace: eadalat
+  labels:
+    app: hearing-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hearing-service
+  template:
+    metadata:
+      labels:
+        app: hearing-service
+    spec:
+      containers:
+        - name: hearing-service
+          image: eadalat/hearing-service:latest
+          ports:
+            - containerPort: 8086
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: jwt-secret
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.eadalat.svc.cluster.local:9092
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hearing-service
+  namespace: eadalat
+spec:
+  selector:
+    app: hearing-service
+  ports:
+    - port: 8086
+      targetPort: 8086
