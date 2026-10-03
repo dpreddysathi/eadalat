@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-Adalat — Online Dispute Resolution</title>
+  <style>
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --ink: #1d2433;
+  --muted: #6b7385;
+  --primary: #2f5fdd;
+  --primary-dark: #244bb0;
+  --danger: #d64545;
+  --border: #e2e7f0;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.error { color: var(--danger); }
+
+#topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background: #141a2e;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand { font-weight: 700; font-size: 1.15rem; }
+
+#topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+#topbar nav a {
+  color: #cfd8ef;
+  text-decoration: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+}
+
+#topbar nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.user-chip {
+  background: rgba(255,255,255,0.12);
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  position: relative;
+  padding: 0.3rem;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.65rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-ghost { background: rgba(255,255,255,0.12); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+
+main { max-width: 960px; margin: 0 auto; padding: 1.2rem; }
+
+.view { animation: fadein 0.2s ease; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+.auth-card {
+  max-width: 420px;
+  margin: 6vh auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(20, 30, 60, 0.08);
+}
+
+.auth-card h1 { margin: 0 0 0.25rem; }
+
+.tabs { display: flex; gap: 0.5rem; margin: 1.2rem 0; }
+.tab {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.stack { display: flex; flex-direction: column; gap: 0.7rem; text-align: left; }
+
+input, textarea, select {
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 100%;
+  font-size: 16px; /* avoids iOS zoom */
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--primary);
+  border-color: var(--primary);
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(20, 30, 60, 0.05);
+}
+
+.card h3 { margin: 0 0 0.4rem; }
+.card p { margin: 0.3rem 0; color: var(--muted); }
+.card a.case-link { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+.pill {
+  display: inline-block;
+  background: #e8eefc;
+  color: var(--primary-dark);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.back-link { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 0.8rem; }
+
+.detail-grid { display: grid; gap: 1rem; }
+
+.doc-row, .hearing-row, .notif-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.doc-row:last-child, .hearing-row:last-child, .notif-row:last-child { border-bottom: none; }
+
+.summary-box {
+  background: #f0f4ff;
+  border-left: 4px solid var(--primary);
+  padding: 0.8rem 1rem;
+  border-radius: 0 8px 8px 0;
+  white-space: pre-wrap;
+}
+
+.notif-panel {
+  position: fixed;
+  top: 56px;
+  right: 12px;
+  width: min(360px, 92vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(20, 30, 60, 0.2);
+  z-index: 60;
+}
+
+.notif-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--card);
+}
+.notif-panel-head .icon-btn { color: var(--ink); }
+.notif-list { padding: 0 1rem 1rem; }
+
+.videos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.video-wrap {
+  position: relative;
+  background: #0c1020;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.video-wrap video { width: 100%; height: 100%; object-fit: cover; }
+
+.video-label {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #141a2e;
+  color: #fff;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  z-index: 100;
+}
+
+@media (max-width: 640px) {
+  main { padding: 0.8rem; }
+  #topbar { flex-wrap: wrap; gap: 0.4rem; }
+  #topbar nav a { padding: 0.4rem 0.4rem; font-size: 0.9rem; }
+  .videos { grid-template-columns: 1fr; }
+  .auth-card { margin: 4vh 0.5rem; padding: 1.4rem; }
+}
+
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+  <header id="topbar" class="hidden">
+    <div class="brand">⚖️ e-Adalat</div>
+    <nav>
+      <a href="#/cases">My Cases</a>
+      <a href="#/cases/new">File a Case</a>
+      <button id="notif-btn" class="icon-btn" title="Notifications">🔔 <span id="notif-count" class="badge hidden">0</span></button>
+      <span id="user-chip" class="user-chip"></span>
+      <button id="logout-btn" class="btn btn-ghost">Logout</button>
+    </nav>
+  </header>
+
+  <div id="notif-panel" class="notif-panel hidden">
+    <div class="notif-panel-head">
+      <strong>Notifications</strong>
+      <button id="notif-close" class="icon-btn">✕</button>
+    </div>
+    <div id="notif-list" class="notif-list"></div>
+  </div>
+
+  <main id="app">
+    <!-- Auth -->
+    <section id="view-auth" class="view">
+      <div class="auth-card">
+        <h1>⚖️ e-Adalat</h1>
+        <p class="muted">Online Dispute Resolution Platform</p>
+        <div class="tabs">
+          <button id="tab-login" class="tab active">Login</button>
+          <button id="tab-register" class="tab">Register</button>
+        </div>
+        <form id="login-form" class="stack">
+          <input id="login-email" type="email" placeholder="Email" required autocomplete="email" />
+          <input id="login-password" type="password" placeholder="Password" required autocomplete="current-password" />
+          <button class="btn btn-primary" type="submit">Login</button>
+        </form>
+        <form id="register-form" class="stack hidden">
+          <input id="reg-name" type="text" placeholder="Full name" required autocomplete="name" />
+          <input id="reg-email" type="email" placeholder="Email" required autocomplete="email" />
+          <input id="reg-password" type="password" placeholder="Password" required autocomplete="new-password" />
+          <select id="reg-role">
+            <option value="CITIZEN">Citizen</option>
+            <option value="LAWYER">Lawyer</option>
+            <option value="JUDGE">Judge</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Register</button>
+        </form>
+        <p id="auth-error" class="error hidden"></p>
+        <p class="muted small">Demo: admin@eadalat.local / admin123</p>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="view-dashboard" class="view hidden">
+      <div class="page-head">
+        <h2>My Cases</h2>
+        <a class="btn btn-primary" href="#/cases/new">+ File a Case</a>
+      </div>
+      <div id="case-list" class="cards"></div>
+    </section>
+
+    <!-- File a case -->
+    <section id="view-filecase" class="view hidden">
+      <div class="page-head"><h2>File a New Case</h2></div>
+      <form id="filecase-form" class="card stack">
+        <input id="fc-title" type="text" placeholder="Case title" required />
+        <input id="fc-category" type="text" placeholder="Category (e.g. consumer, property, loan)" />
+        <textarea id="fc-description" rows="6" placeholder="Describe the dispute..." required></textarea>
+        <button class="btn btn-primary" type="submit">Submit Case</button>
+      </form>
+      <p id="filecase-error" class="error hidden"></p>
+    </section>
+
+    <!-- Case detail -->
+    <section id="view-case" class="view hidden">
+      <a href="#/cases" class="back-link">‹ Back to cases</a>
+      <div id="case-detail"></div>
+    </section>
+
+    <!-- Hearing room -->
+    <section id="view-hearing" class="view hidden">
+      <div class="page-head">
+        <h2>🎥 Hearing Room</h2>
+        <div>
+          <span id="room-label" class="pill"></span>
+          <button id="leave-room-btn" class="btn btn-danger">Leave</button>
+        </div>
+      </div>
+      <div class="videos">
+        <div class="video-wrap">
+          <video id="local-video" autoplay muted playsinline></video>
+          <span class="video-label">You</span>
+        </div>
+        <div class="video-wrap">
+          <video id="remote-video" autoplay playsinline></video>
+          <span class="video-label">Remote</span>
+        </div>
+      </div>
+      <p id="room-status" class="muted">Connecting…</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script>
+/* ===== preview mock API (installed before the app) ===== */
+/* ============================================================================
+ * e-Adalat preview — mock API layer
+ *
+ * Installed BEFORE app.js. Wraps window.fetch and intercepts every call to
+ * http://localhost:8080/api/*, serving realistic in-memory demo data so the
+ * real web client runs end-to-end with no backend.
+ *
+ * Also:
+ *  - intercepts document download link clicks and serves a demo text Blob
+ *  - injects a dismissible "Demo mode" banner into the hearing-room view
+ * ========================================================================== */
+(function () {
+  'use strict';
+
+  var API_BASE = 'http://localhost:8080';
+
+  /* ---------------- demo data ---------------- */
+
+  var users = [
+    { id: 1, name: 'Admin', email: 'admin@eadalat.local', password: 'admin123', role: 'ADMIN' },
+    { id: 2, name: 'Priya Sharma', email: 'priya@example.com', password: 'priya123', role: 'PETITIONER' },
+    { id: 3, name: 'Adv. Rahul Verma', email: 'rahul@example.com', password: 'rahul123', role: 'LAWYER' },
+    { id: 4, name: 'Justice Meera Iyer', email: 'meera@example.com', password: 'meera123', role: 'JUDGE' }
+  ];
+  var nextUserId = 5;
+
+  var cases = [
+    {
+      id: 101,
+      title: 'Property boundary dispute — Plot 42, Whitefield',
+      category: 'property',
+      status: 'IN_HEARING',
+      petitionerId: 2,
+      lawyerId: 3,
+      judgeId: 4,
+      createdAt: '2026-08-14T10:30:00',
+      description: 'Dispute over the eastern boundary of Plot 42, Whitefield, Bengaluru. ' +
+        'The petitioner claims the respondent erected a compound wall 1.8 metres inside the surveyed ' +
+        'boundary line in March 2026, encroaching on approximately 90 sq ft of the petitioner\'s plot. ' +
+        'A licensed surveyor\'s report dated 02-Apr-2026 supports the petitioner\'s claim, while the ' +
+        'respondent relies on a 1998 sale deed with ambiguous schedule boundaries. ' +
+        'Two hearings have been held; witness statements are being recorded in the current phase.'
+    },
+    {
+      id: 102,
+      title: 'Unpaid invoice — Sharma Textiles vs Kumar Traders',
+      category: 'commercial',
+      status: 'FILED',
+      petitionerId: 2,
+      lawyerId: null,
+      judgeId: null,
+      createdAt: '2026-09-28T14:05:00',
+      description: 'Claim for recovery of Rs. 4,85,000 against Kumar Traders for textile goods supplied ' +
+        'between January and March 2026 under invoice nos. ST-2847 to ST-2852. ' +
+        'The respondent acknowledged the debt in writing on 18-May-2026 but has defaulted on the agreed ' +
+        'payment schedule of three instalments. The petitioner seeks the principal amount with 12% p.a. ' +
+        'interest from the date of default, plus arbitration costs.'
+    },
+    {
+      id: 103,
+      title: 'Tenant eviction appeal — Flat 7B, HSR Layout',
+      category: 'tenancy',
+      status: 'VERDICT_PENDING',
+      petitionerId: 2,
+      lawyerId: 3,
+      judgeId: 4,
+      createdAt: '2026-07-02T09:15:00',
+      description: 'Appeal against the eviction order dated 11-Jun-2026 passed in favour of the landlord. ' +
+        'The petitioner-tenant contends the eviction notice under Section 27(2) of the Rent Control Act ' +
+        'was defective as it was served to an outdated address, and that rent for the disputed period was ' +
+        'deposited with the Rent Controller within the statutory window. ' +
+        'Arguments concluded on 25-Sep-2026; the matter is reserved for verdict.'
+    }
+  ];
+  var nextCaseId = 104;
+
+  function isoPlusDays(days, hour, min) {
+    var d = new Date(Date.now() + days * 86400000);
+    d.setHours(hour == null ? 11 : hour, min == null ? 0 : min, 0, 0);
+    return d.toISOString().slice(0, 16);
+  }
+
+  var hearings = [
+    {
+      id: 201,
+      caseId: 101,
+      roomId: 'room-101-a',
+      title: 'Third hearing — cross-examination of surveyor',
+      scheduledAt: isoPlusDays(1, 11, 0),
+      durationMinutes: 60,
+      status: 'SCHEDULED'
+    },
+    {
+      id: 202,
+      caseId: 101,
+      roomId: 'room-101-old',
+      title: 'Second hearing — witness statements',
+      scheduledAt: isoPlusDays(-6, 11, 0),
+      durationMinutes: 60,
+      status: 'COMPLETED'
+    }
+  ];
+  var nextHearingId = 203;
+
+  var documents = [
+    { id: 301, caseId: 101, fileName: 'sale-deed-plot42.pdf', version: 2, sizeBytes: 184320, uploadedBy: 2, createdAt: '2026-08-14T11:02:00' },
+    { id: 302, caseId: 101, fileName: 'survey-map-2026.pdf', version: 1, sizeBytes: 962560, uploadedBy: 3, createdAt: '2026-08-20T16:44:00' },
+    { id: 303, caseId: 101, fileName: 'witness-statement-raghav.docx', version: 1, sizeBytes: 48210, uploadedBy: 3, createdAt: '2026-09-11T10:20:00' },
+    { id: 304, caseId: 102, fileName: 'invoice-ST-2847.pdf', version: 1, sizeBytes: 88400, uploadedBy: 2, createdAt: '2026-09-28T14:12:00' },
+    { id: 305, caseId: 102, fileName: 'payment-ledger-2026.xlsx', version: 3, sizeBytes: 61200, uploadedBy: 2, createdAt: '2026-09-29T09:31:00' },
+    { id: 306, caseId: 103, fileName: 'rent-agreement-2023.pdf', version: 1, sizeBytes: 210400, uploadedBy: 2, createdAt: '2026-07-02T09:40:00' },
+    { id: 307, caseId: 103, fileName: 'eviction-notice-jun2026.pdf', version: 1, sizeBytes: 95300, uploadedBy: 3, createdAt: '2026-07-15T13:05:00' }
+  ];
+  var nextDocId = 308;
+
+  var notifications = [
+    { id: 401, userId: 2, caseId: 101, type: 'HEARING_SCHEDULED', read: false, createdAt: isoPlusDays(-1, 9, 0),
+      message: 'Hearing scheduled: "Third hearing — cross-examination of surveyor" for Property boundary dispute, tomorrow at 11:00 AM.' },
+    { id: 402, userId: 2, caseId: 101, type: 'DOCUMENT_UPLOADED', read: false, createdAt: '2026-09-11T10:21:00',
+      message: 'Adv. Rahul Verma uploaded "witness-statement-raghav.docx" to Property boundary dispute — Plot 42, Whitefield.' },
+    { id: 403, userId: 2, caseId: 103, type: 'STATUS_CHANGED', read: false, createdAt: '2026-09-25T17:40:00',
+      message: 'Your case "Tenant eviction appeal — Flat 7B, HSR Layout" moved to VERDICT_PENDING. Arguments concluded.' },
+    { id: 404, userId: 2, caseId: 102, type: 'CASE_FILED', read: false, createdAt: '2026-09-28T14:06:00',
+      message: 'Case "Unpaid invoice — Sharma Textiles vs Kumar Traders" filed successfully and is awaiting assignment.' }
+  ];
+  var nextNotifId = 405;
+
+  /* The currently "logged in" user for this demo session. */
+  var sessionUser = null;
+
+  /* ---------------- helpers ---------------- */
+
+  function fakeToken(user) {
+    try {
+      return 'demo.' + btoa(JSON.stringify({ sub: user.id, role: user.role, name: user.name })) + '.mock-signature';
+    } catch (e) {
+      return 'demo-token-' + user.id;
+    }
+  }
+
+  function publicUser(u) {
+    return { id: u.id, name: u.name, email: u.email, role: u.role };
+  }
+
+  function json(data, status) {
+    return Promise.resolve(new Response(JSON.stringify(data), {
+      status: status || 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+  }
+
+  function err(status, message) {
+    return json({ error: message }, status);
+  }
+
+  function authorized(init) {
+    var h = (init && init.headers) || {};
+    var v = h['Authorization'] || h['authorization'] || '';
+    return typeof v === 'string' && v.indexOf('Bearer ') === 0 && v.length > 7;
+  }
+
+  function readJsonBody(init) {
+    try { return JSON.parse(init.body || '{}'); }
+    catch (e) { return {}; }
+  }
+
+  function findCase(id) {
+    for (var i = 0; i < cases.length; i++) if (String(cases[i].id) === String(id)) return cases[i];
+    return null;
+  }
+
+  function findDoc(id) {
+    for (var i = 0; i < documents.length; i++) if (String(documents[i].id) === String(id)) return documents[i];
+    return null;
+  }
+
+  function findHearing(id) {
+    for (var i = 0; i < hearings.length; i++) if (String(hearings[i].id) === String(id)) return hearings[i];
+    return null;
+  }
+
+  function findNotif(id) {
+    for (var i = 0; i < notifications.length; i++) if (String(notifications[i].id) === String(id)) return notifications[i];
+    return null;
+  }
+
+  function caseSummary(c) {
+    var summaries = {
+      101: {
+        summary: 'Boundary encroachment claim over Plot 42, Whitefield. Petitioner alleges a 1.8m compound-wall ' +
+          'encroachment (~90 sq ft) supported by an April 2026 surveyor report; respondent relies on a 1998 sale ' +
+          'deed with ambiguous schedule boundaries. Matter is in the hearing phase with witness statements being recorded.',
+        keywords: ['boundary', 'encroachment', 'surveyor', 'sale deed', 'compound wall', 'Whitefield', 'witness', 'schedule']
+      },
+      102: {
+        summary: 'Commercial recovery claim of Rs. 4,85,000 for textile supplies (Jan–Mar 2026, invoices ST-2847 to ST-2852). ' +
+          'Debt acknowledged in writing on 18-May-2026; respondent defaulted on the agreed three-instalment schedule. ' +
+          'Petitioner seeks principal plus 12% p.a. interest and costs. Case freshly filed, awaiting assignment.',
+        keywords: ['invoice', 'recovery', 'textile', 'default', 'instalment', 'interest', 'acknowledgement', 'commercial']
+      },
+      103: {
+        summary: 'Tenant appeal against a June 2026 eviction order. Defence: defective service of the Section 27(2) notice ' +
+          'to an outdated address, and timely deposit of disputed rent with the Rent Controller. Arguments concluded ' +
+          '25-Sep-2026; verdict reserved.',
+        keywords: ['eviction', 'tenant', 'notice', 'rent controller', 'appeal', 'section 27(2)', 'deposit', 'verdict']
+      }
+    };
+    if (summaries[c.id]) return { caseId: c.id, summary: summaries[c.id].summary, keywords: summaries[c.id].keywords };
+    var words = (c.title + ' ' + (c.description || '')).split(/\s+/).slice(0, 40).join(' ');
+    return { caseId: c.id, summary: words + '…', keywords: [c.category || 'dispute', c.status.toLowerCase()] };
+  }
+
+  /* ---------------- route handlers ---------------- */
+
+  function handleAuth(path, method, init) {
+    if (path === '/api/auth/login' && method === 'POST') {
+      var b = readJsonBody(init);
+      var u = null;
+      for (var i = 0; i < users.length; i++) {
+        if (users[i].email.toLowerCase() === String(b.email || '').toLowerCase() && users[i].password === b.password) { u = users[i]; break; }
+      }
+      if (!u) return err(401, 'Invalid email or password.');
+      sessionUser = u;
+      return json({ token: fakeToken(u), user: publicUser(u) });
+    }
+    if (path === '/api/auth/register' && method === 'POST') {
+      var r = readJsonBody(init);
+      if (!r.email || !r.password || !r.name) return err(400, 'Name, email and password are required.');
+      for (var j = 0; j < users.length; j++) {
+        if (users[j].email.toLowerCase() === String(r.email).toLowerCase()) return err(409, 'Email already registered.');
+      }
+      var role = r.role === 'CITIZEN' ? 'PETITIONER' : (r.role || 'PETITIONER');
+      var nu = { id: nextUserId++, name: r.name, email: r.email, password: r.password, role: role };
+      users.push(nu);
+      sessionUser = nu;
+      return json({ token: fakeToken(nu), user: publicUser(nu) }, 201);
+    }
+    if (path === '/api/auth/me' && method === 'GET') {
+      if (!sessionUser) return err(401, 'Not logged in.');
+      return json(publicUser(sessionUser));
+    }
+    return err(404, 'Not found: ' + path);
+  }
+
+  function handleCases(path, method, init, q) {
+    if (path === '/api/cases' && method === 'GET') {
+      return json(cases.slice());
+    }
+    if (path === '/api/cases' && method === 'POST') {
+      var b = readJsonBody(init);
+      if (!b.title) return err(400, 'Title is required.');
+      var nc = {
+        id: nextCaseId++,
+        title: b.title,
+        category: b.category || 'general',
+        description: b.description || '',
+        status: 'FILED',
+        petitionerId: sessionUser ? sessionUser.id : null,
+        lawyerId: null,
+        judgeId: null,
+        createdAt: new Date().toISOString().slice(0, 16)
+      };
+      cases.push(nc);
+      notifications.unshift({
+        id: nextNotifId++, userId: nc.petitionerId, caseId: nc.id,
+        type: 'CASE_FILED', read: false, createdAt: new Date().toISOString().slice(0, 16),
+        message: 'Case "' + nc.title + '" filed successfully and is awaiting assignment.'
+      });
+      return json(nc, 201);
+    }
+    var m = path.match(/^\/api\/cases\/(\d+)(\/.*)?$/);
+    if (m) {
+      var c = findCase(m[1]);
+      if (!c) return err(404, 'Case not found.');
+      var rest = m[2] || '';
+      if (rest === '' && method === 'GET') return json(c);
+      if (rest === '/summary' && method === 'GET') return json(caseSummary(c));
+      if (rest === '/assign' && method === 'PUT') {
+        var ab = readJsonBody(init);
+        if (ab.judgeId != null) c.judgeId = ab.judgeId;
+        if (ab.lawyerId != null) c.lawyerId = ab.lawyerId;
+        c.status = 'ASSIGNED';
+        return json(c);
+      }
+      if (rest === '/status' && method === 'PUT') {
+        var sb = readJsonBody(init);
+        if (sb.status) c.status = sb.status;
+        return json(c);
+      }
+    }
+    return err(404, 'Not found: ' + path);
+  }
+
+  function handleHearings(path, method, init, q) {
+    if (path === '/api/hearings' && method === 'GET') {
+      var cid = q.get('caseId');
+      var list = hearings.filter(function (h) { return !cid || String(h.caseId) === String(cid); });
+      return json(list);
+    }
+    if (path === '/api/hearings' && method === 'POST') {
+      var b = readJsonBody(init);
+      if (!b.caseId || !b.scheduledAt) return err(400, 'caseId and scheduledAt are required.');
+      var nh = {
+        id: nextHearingId++,
+        caseId: b.caseId,
+        roomId: 'room-' + b.caseId + '-' + Math.random().toString(36).slice(2, 6),
+        title: b.title || 'Hearing',
+        scheduledAt: b.scheduledAt,
+        durationMinutes: b.durationMinutes || 60,
+        status: 'SCHEDULED'
+      };
+      hearings.push(nh);
+      return json(nh, 201);
+    }
+    var m = path.match(/^\/api\/hearings\/(\d+)\/(cancel|complete)$/);
+    if (m && method === 'PUT') {
+      var h = findHearing(m[1]);
+      if (!h) return err(404, 'Hearing not found.');
+      h.status = m[2] === 'cancel' ? 'CANCELLED' : 'COMPLETED';
+      return json(h);
+    }
+    return err(404, 'Not found: ' + path);
+  }
+
+  function handleDocuments(path, method, init, q) {
+    if (path === '/api/documents' && method === 'GET') {
+      var cid = q.get('caseId');
+      var list = documents.filter(function (d) { return !cid || String(d.caseId) === String(cid); });
+      return json(list);
+    }
+    if (path === '/api/documents/search' && method === 'GET') {
+      var term = (q.get('q') || '').toLowerCase();
+      var hits = documents.filter(function (d) { return d.fileName.toLowerCase().indexOf(term) >= 0; });
+      return json(hits);
+    }
+    if (path === '/api/documents' && method === 'POST') {
+      var fd = init.body;
+      var file = fd && typeof fd.get === 'function' ? fd.get('file') : null;
+      var caseId = fd && typeof fd.get === 'function' ? fd.get('caseId') : null;
+      var name = (file && file.name) || 'untitled';
+      var size = (file && file.size) || 0;
+      var maxV = 0;
+      documents.forEach(function (d) {
+        if (String(d.caseId) === String(caseId) && d.fileName === name && d.version > maxV) maxV = d.version;
+      });
+      var nd = {
+        id: nextDocId++,
+        caseId: caseId,
+        fileName: name,
+        version: maxV + 1,
+        sizeBytes: size,
+        uploadedBy: sessionUser ? sessionUser.id : null,
+        createdAt: new Date().toISOString().slice(0, 16)
+      };
+      documents.push(nd);
+      return json(nd, 201);
+    }
+    var mv = path.match(/^\/api\/documents\/(\d+)\/versions$/);
+    if (mv && method === 'GET') {
+      var d0 = findDoc(mv[1]);
+      if (!d0) return err(404, 'Document not found.');
+      var vers = [];
+      for (var v = 1; v <= d0.version; v++) {
+        vers.push({ id: d0.id * 10 + v, caseId: d0.caseId, fileName: d0.fileName, version: v,
+          sizeBytes: d0.sizeBytes, uploadedBy: d0.uploadedBy, createdAt: d0.createdAt });
+      }
+      return json(vers);
+    }
+    var md = path.match(/^\/api\/documents\/(\d+)\/download$/);
+    if (md && method === 'GET') {
+      var dd = findDoc(md[1]);
+      if (!dd) return err(404, 'Document not found.');
+      var text = 'e-Adalat demo file\n==================\n\n' +
+        'File: ' + dd.fileName + ' (version ' + dd.version + ')\n' +
+        'Case ID: ' + dd.caseId + '\n\n' +
+        'This is placeholder content served by the preview mock API.\n' +
+        'Connect the live backend to download the real document bytes.\n';
+      return Promise.resolve(new Response(text, {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' }
+      }));
+    }
+    return err(404, 'Not found: ' + path);
+  }
+
+  function handleNotifications(path, method, init, q) {
+    if (path === '/api/notifications' && method === 'GET') {
+      var unreadOnly = q.get('unreadOnly') === 'true';
+      var list = notifications.filter(function (n) { return !unreadOnly || !n.read; });
+      return json(list);
+    }
+    var m = path.match(/^\/api\/notifications\/(\d+)\/read$/);
+    if (m && (method === 'POST' || method === 'PUT')) {
+      var n = findNotif(m[1]);
+      if (!n) return err(404, 'Notification not found.');
+      n.read = true;
+      return json(n);
+    }
+    return err(404, 'Not found: ' + path);
+  }
+
+  function handleRooms(path) {
+    var m = path.match(/^\/api\/rooms\/([^/]+)\/participants$/);
+    if (m) {
+      return json({ roomId: m[1], count: 1, users: ['Demo Judge'] });
+    }
+    return err(404, 'Not found: ' + path);
+  }
+
+  function handleMock(url, init) {
+    var u = new URL(url);
+    var path = u.pathname;
+    var method = ((init && init.method) || 'GET').toUpperCase();
+
+    if (path.indexOf('/api/auth/') === 0) return handleAuth(path, method, init);
+    if (!authorized(init)) return err(401, 'Unauthorized');
+
+    if (path.indexOf('/api/cases') === 0) return handleCases(path, method, init, u.searchParams);
+    if (path.indexOf('/api/hearings') === 0) return handleHearings(path, method, init, u.searchParams);
+    if (path.indexOf('/api/documents') === 0) return handleDocuments(path, method, init, u.searchParams);
+    if (path.indexOf('/api/notifications') === 0) return handleNotifications(path, method, init, u.searchParams);
+    if (path.indexOf('/api/rooms/') === 0) return handleRooms(path);
+    return err(404, 'Not found: ' + path);
+  }
+
+  /* ---------------- install the fetch wrapper ---------------- */
+
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (url.indexOf(API_BASE + '/api/') === 0) {
+      try {
+        return handleMock(url, init || {});
+      } catch (e) {
+        return Promise.resolve(new Response(JSON.stringify({ error: 'Mock error: ' + e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json' }
+        }));
+      }
+    }
+    return realFetch(input, init);
+  };
+
+  /* ---------------- download links: serve a demo blob ---------------- */
+
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href*="/api/documents/"]') : null;
+    if (!a || a.href.indexOf('/download') < 0) return;
+    e.preventDefault();
+    window.fetch(a.href)
+      .then(function (r) { return r.blob(); })
+      .then(function (blob) {
+        var objUrl = URL.createObjectURL(blob);
+        var tmp = document.createElement('a');
+        tmp.href = objUrl;
+        tmp.download = 'eadalat-demo-document.txt';
+        document.body.appendChild(tmp);
+        tmp.click();
+        setTimeout(function () { URL.revokeObjectURL(objUrl); tmp.remove(); }, 1500);
+      })
+      .catch(function () { /* non-fatal */ });
+  });
+
+  /* ---------------- hearing-room demo banner ---------------- */
+
+  var bannerCss =
+    '.demo-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;' +
+    'background:#fff8e1;border:1px solid #f0d060;border-left:4px solid #e0a800;border-radius:10px;' +
+    'padding:10px 14px;margin-bottom:14px;font-size:14px;color:#5a4a00;}' +
+    '.demo-banner button{background:none;border:none;font-size:16px;cursor:pointer;color:#5a4a00;padding:4px 8px;}';
+  var styleEl = document.createElement('style');
+  styleEl.textContent = bannerCss;
+  document.head.appendChild(styleEl);
+
+  setInterval(function () {
+    var view = document.getElementById('view-hearing');
+    if (!view || view.classList.contains('hidden')) return;
+    if (view.querySelector('.demo-banner')) return;
+    var banner = document.createElement('div');
+    banner.className = 'demo-banner';
+    var label = document.createElement('span');
+    label.textContent = '⚠️ Demo mode — video needs the live backend; the room UI below is exactly as built.';
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Dismiss');
+    close.textContent = '✕';
+    close.addEventListener('click', function () { banner.remove(); });
+    banner.appendChild(label);
+    banner.appendChild(close);
+    view.insertBefore(banner, view.firstChild);
+  }, 500);
+})();
+
+</script>
+<script>
+/* ===== e-Adalat web client (app.js, unmodified) ===== */
+/* e-Adalat web client — vanilla JS. All API calls go through the gateway. */
+'use strict';
+
+const API = 'http://localhost:8080';
+const WS_URL = 'http://localhost:8080/ws-hearing';
+
+/* ---------- helpers ---------- */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+function getToken() { return localStorage.getItem('eadalat_token'); }
+function getUser() {
+  try { return JSON.parse(localStorage.getItem('eadalat_user') || 'null'); }
+  catch (e) { return null; }
+}
+function isLoggedIn() { return !!getToken(); }
+
+function authHeaders(extra) {
+  const h = Object.assign({}, extra);
+  const t = getToken();
+  if (t) h['Authorization'] = 'Bearer ' + t;
+  return h;
+}
+
+/** JSON API helper. Throws on non-2xx; logs out on 401. */
+async function api(path, method, body) {
+  method = method || 'GET';
+  const res = await fetch(API + path, {
+    method: method,
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: body == null ? undefined : JSON.stringify(body)
+  });
+  if (res.status === 401) { logout(); throw new Error('Session expired — please log in again.'); }
+  if (!res.ok) {
+    let msg = '';
+    try { msg = await res.text(); } catch (e) { /* ignore */ }
+    throw new Error(msg || ('Request failed: HTTP ' + res.status));
+  }
+  if (res.status === 204) return null;
+  const ct = res.headers.get('content-type') || '';
+  return ct.indexOf('application/json') >= 0 ? res.json() : res.text();
+}
+
+/** Multipart upload helper (documents). */
+async function apiUpload(path, formData) {
+  const res = await fetch(API + path, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: formData
+  });
+  if (res.status === 401) { logout(); throw new Error('Session expired — please log in again.'); }
+  if (!res.ok) {
+    let msg = '';
+    try { msg = await res.text(); } catch (e) { /* ignore */ }
+    throw new Error(msg || ('Upload failed: HTTP ' + res.status));
+  }
+  const ct = res.headers.get('content-type') || '';
+  return ct.indexOf('application/json') >= 0 ? res.json() : res.text();
+}
+
+function logout() {
+  leaveRoom();
+  localStorage.removeItem('eadalat_token');
+  localStorage.removeItem('eadalat_user');
+  location.hash = '#/login';
+}
+
+/* ---------- routing ---------- */
+const VIEWS = ['view-auth', 'view-dashboard', 'view-filecase', 'view-case', 'view-hearing'];
+
+function showView(id) {
+  VIEWS.forEach(v => {
+    const el = document.getElementById(v);
+    if (el) el.classList.toggle('hidden', v !== id);
+  });
+  const topbar = document.getElementById('topbar');
+  if (topbar) topbar.classList.toggle('hidden', id === 'view-auth');
+}
+
+function route() {
+  const hash = location.hash || '#/login';
+  const parts = hash.replace(/^#\//, '').split('/');
+  leaveRoom(); // leave any active room on navigation
+
+  if (!isLoggedIn()) { showView('view-auth'); return; }
+  renderUserChip();
+
+  if (parts[0] === 'cases' && parts.length === 1) { showView('view-dashboard'); loadCases(); }
+  else if (parts[0] === 'cases' && parts[1] === 'new') { showView('view-filecase'); }
+  else if (parts[0] === 'cases' && parts[1]) { showView('view-case'); loadCaseDetail(parts[1]); }
+  else if (parts[0] === 'hearing' && parts[1]) { showView('view-hearing'); joinRoom(parts[1]); }
+  else { location.hash = '#/cases'; }
+}
+
+window.addEventListener('hashchange', route);
+
+/* ---------- auth ---------- */
+function renderUserChip() {
+  const chip = document.getElementById('user-chip');
+  const u = getUser();
+  if (chip) chip.textContent = u && (u.name || u.email) ? (u.name || u.email) : '';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle('hidden', !msg);
+}
+
+function bindAuth() {
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+
+  if (tabLogin && tabRegister) {
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('active'); tabRegister.classList.remove('active');
+      loginForm.classList.remove('hidden'); registerForm.classList.add('hidden');
+    });
+    tabRegister.addEventListener('click', () => {
+      tabRegister.classList.add('active'); tabLogin.classList.remove('active');
+      registerForm.classList.remove('hidden'); loginForm.classList.add('hidden');
+    });
+  }
+
+  if (loginForm) loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showAuthError('');
+    try {
+      const data = await api('/api/auth/login', 'POST', {
+        email: document.getElementById('login-email').value.trim(),
+        password: document.getElementById('login-password').value
+      });
+      saveSession(data);
+      location.hash = '#/cases';
+    } catch (err) { showAuthError(err.message); }
+  });
+
+  if (registerForm) registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showAuthError('');
+    try {
+      const data = await api('/api/auth/register', 'POST', {
+        name: document.getElementById('reg-name').value.trim(),
+        email: document.getElementById('reg-email').value.trim(),
+        password: document.getElementById('reg-password').value,
+        role: document.getElementById('reg-role').value
+      });
+      saveSession(data);
+      location.hash = '#/cases';
+    } catch (err) { showAuthError(err.message); }
+  });
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+}
+
+function saveSession(data) {
+  if (!data || !data.token) throw new Error('Invalid auth response from server.');
+  localStorage.setItem('eadalat_token', data.token);
+  if (data.user) localStorage.setItem('eadalat_user', JSON.stringify(data.user));
+}
+
+/* ---------- dashboard ---------- */
+async function loadCases() {
+  const list = document.getElementById('case-list');
+  if (!list) return;
+  list.innerHTML = '<p class="muted">Loading…</p>';
+  try {
+    const cases = await api('/api/cases');
+    if (!Array.isArray(cases) || cases.length === 0) {
+      list.innerHTML = '<p class="muted">No cases yet. <a href="#/cases/new">File your first case</a>.</p>';
+      return;
+    }
+    list.innerHTML = cases.map(c => (
+      '<div class="card">' +
+        '<h3><a class="case-link" href="#/cases/' + esc(c.id) + '">' + esc(c.title || 'Untitled case') + '</a></h3>' +
+        (c.status ? '<span class="pill">' + esc(c.status) + '</span>' : '') +
+        (c.category ? '<p>' + esc(c.category) + '</p>' : '') +
+        (c.createdAt ? '<p class="small">' + esc(String(c.createdAt).slice(0, 10)) + '</p>' : '') +
+      '</div>'
+    )).join('');
+  } catch (err) {
+    list.innerHTML = '<p class="error">' + esc(err.message) + '</p>';
+  }
+}
+
+/* ---------- file a case ---------- */
+function bindFileCase() {
+  const form = document.getElementById('filecase-form');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('filecase-error');
+    if (errEl) errEl.classList.add('hidden');
+    try {
+      const created = await api('/api/cases', 'POST', {
+        title: document.getElementById('fc-title').value.trim(),
+        category: document.getElementById('fc-category').value.trim(),
+        description: document.getElementById('fc-description').value.trim()
+      });
+      toast('Case filed successfully.');
+      form.reset();
+      location.hash = created && created.id ? '#/cases/' + created.id : '#/cases';
+    } catch (err) {
+      if (errEl) { errEl.textContent = err.message; errEl.classList.remove('hidden'); }
+    }
+  });
+}
+
+/* ---------- case detail ---------- */
+async function loadCaseDetail(id) {
+  const root = document.getElementById('case-detail');
+  if (!root) return;
+  root.innerHTML = '<p class="muted">Loading case…</p>';
+  let c;
+  try {
+    c = await api('/api/cases/' + encodeURIComponent(id));
+  } catch (err) {
+    root.innerHTML = '<p class="error">' + esc(err.message) + '</p>';
+    return;
+  }
+  const u = getUser() || {};
+  const role = String(u.role || '').toUpperCase();
+  const canSchedule = role === 'ADMIN' || role === 'JUDGE';
+
+  root.innerHTML =
+    '<div class="detail-grid">' +
+      '<div class="card"><h3>' + esc(c.title || 'Untitled case') + '</h3>' +
+        (c.status ? '<span class="pill">' + esc(c.status) + '</span> ' : '') +
+        (c.category ? '<span class="pill">' + esc(c.category) + '</span>' : '') +
+        '<p>' + esc(c.description || '') + '</p>' +
+        (c.createdAt ? '<p class="small muted">Filed: ' + esc(String(c.createdAt).slice(0, 10)) + '</p>' : '') +
+      '</div>' +
+      '<div class="card"><h3>🤖 AI Summary</h3><div class="summary-box" id="case-summary"><span class="muted">Loading summary…</span></div></div>' +
+      '<div class="card"><h3>📄 Documents</h3><div id="doc-list"><span class="muted">Loading…</span></div>' +
+        '<form id="doc-upload" class="stack" style="margin-top:0.8rem">' +
+          '<input type="file" id="doc-file" required />' +
+          '<button class="btn btn-primary btn-sm" type="submit">Upload</button>' +
+        '</form></div>' +
+      '<div class="card"><h3>📅 Hearings</h3><div id="hearing-list"><span class="muted">Loading…</span></div>' +
+        (canSchedule
+          ? '<form id="schedule-form" class="stack" style="margin-top:0.8rem">' +
+              '<input type="datetime-local" id="sch-at" required />' +
+              '<input type="text" id="sch-title" placeholder="Hearing title (optional)" />' +
+              '<button class="btn btn-primary btn-sm" type="submit">Schedule Hearing</button>' +
+            '</form>'
+          : '<p class="muted small">Only judges/admins can schedule hearings.</p>') +
+      '</div>' +
+    '</div>';
+
+  // AI summary
+  api('/api/cases/' + encodeURIComponent(id) + '/summary').then(s => {
+    const box = document.getElementById('case-summary');
+    if (!box) return;
+    box.textContent = (s && (s.summary || s.text)) || (typeof s === 'string' ? s : 'No summary available.');
+  }).catch(() => {
+    const box = document.getElementById('case-summary');
+    if (box) box.innerHTML = '<span class="muted">Summary unavailable.</span>';
+  });
+
+  loadDocuments(id);
+  loadHearings(id);
+
+  const up = document.getElementById('doc-upload');
+  if (up) up.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fileInput = document.getElementById('doc-file');
+    const file = fileInput && fileInput.files && fileInput.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('caseId', id);
+    fd.append('file', file);
+    try {
+      await apiUpload('/api/documents', fd);
+      toast('Document uploaded.');
+      up.reset();
+      loadDocuments(id);
+    } catch (err) { toast(err.message); }
+  });
+
+  const sf = document.getElementById('schedule-form');
+  if (sf) sf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      await api('/api/hearings', 'POST', {
+        caseId: id,
+        scheduledAt: document.getElementById('sch-at').value,
+        title: document.getElementById('sch-title').value.trim()
+      });
+      toast('Hearing scheduled.');
+      sf.reset();
+      loadHearings(id);
+    } catch (err) { toast(err.message); }
+  });
+}
+
+async function loadDocuments(caseId) {
+  const el = document.getElementById('doc-list');
+  if (!el) return;
+  try {
+    const docs = await api('/api/documents?caseId=' + encodeURIComponent(caseId));
+    if (!Array.isArray(docs) || docs.length === 0) {
+      el.innerHTML = '<p class="muted">No documents yet.</p>';
+      return;
+    }
+    el.innerHTML = docs.map(d => {
+      const dl = d.downloadUrl || (API + '/api/documents/' + encodeURIComponent(d.id) + '/download');
+      return '<div class="doc-row"><span>📄 ' + esc(d.fileName || d.name || 'document') + '</span>' +
+        '<a class="btn btn-ghost btn-sm" style="color:var(--primary)" href="' + esc(dl) + '" target="_blank" rel="noopener">Download</a></div>';
+    }).join('');
+  } catch (err) {
+    el.innerHTML = '<p class="error">' + esc(err.message) + '</p>';
+  }
+}
+
+async function loadHearings(caseId) {
+  const el = document.getElementById('hearing-list');
+  if (!el) return;
+  try {
+    const hs = await api('/api/hearings?caseId=' + encodeURIComponent(caseId));
+    if (!Array.isArray(hs) || hs.length === 0) {
+      el.innerHTML = '<p class="muted">No hearings scheduled yet.</p>';
+      return;
+    }
+    el.innerHTML = hs.map(h => {
+      const join = h.roomId
+        ? ' <a class="btn btn-primary btn-sm" href="#/hearing/' + esc(h.roomId) + '">Join Room</a>'
+        : '';
+      return '<div class="hearing-row"><span>🕒 ' + esc(h.scheduledAt || h.date || '') +
+        (h.title ? ' — ' + esc(h.title) : '') +
+        (h.status ? ' <span class="pill">' + esc(h.status) + '</span>' : '') + '</span>' + join + '</div>';
+    }).join('');
+  } catch (err) {
+    el.innerHTML = '<p class="error">' + esc(err.message) + '</p>';
+  }
+}
+
+/* ---------- notifications ---------- */
+async function refreshNotifBadge() {
+  const badge = document.getElementById('notif-count');
+  if (!badge || !isLoggedIn()) return;
+  try {
+    const ns = await api('/api/notifications?unreadOnly=true');
+    const count = Array.isArray(ns) ? ns.length : 0;
+    badge.textContent = count;
+    badge.classList.toggle('hidden', count === 0);
+  } catch (e) { /* non-fatal */ }
+}
+
+async function loadNotifications() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  list.innerHTML = '<p class="muted">Loading…</p>';
+  try {
+    const ns = await api('/api/notifications?unreadOnly=true');
+    if (!Array.isArray(ns) || ns.length === 0) {
+      list.innerHTML = '<p class="muted">No unread notifications.</p>';
+      return;
+    }
+    list.innerHTML = ns.map(n =>
+      '<div class="notif-row"><span>' + esc(n.message || n.title || 'Notification') + '</span>' +
+      '<button class="btn btn-sm" data-read="' + esc(n.id) + '">Mark read</button></div>'
+    ).join('');
+    list.querySelectorAll('[data-read]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await api('/api/notifications/' + encodeURIComponent(btn.getAttribute('data-read')) + '/read', 'POST');
+          loadNotifications();
+          refreshNotifBadge();
+        } catch (err) { toast(err.message); }
+      });
+    });
+  } catch (err) {
+    list.innerHTML = '<p class="error">' + esc(err.message) + '</p>';
+  }
+}
+
+function bindNotifications() {
+  const btn = document.getElementById('notif-btn');
+  const panel = document.getElementById('notif-panel');
+  const close = document.getElementById('notif-close');
+  if (btn && panel) btn.addEventListener('click', () => {
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) loadNotifications();
+  });
+  if (close && panel) close.addEventListener('click', () => panel.classList.add('hidden'));
+}
+
+/* ---------- hearing room (WebRTC + STOMP/SockJS signaling) ---------- */
+let pc = null, stompClient = null, localStream = null, currentRoom = null;
+const myId = 'peer-' + Math.random().toString(36).slice(2, 10);
+
+function setRoomStatus(msg) {
+  const el = document.getElementById('room-status');
+  if (el) el.textContent = msg;
+}
+
+function signal(payload) {
+  if (stompClient && stompClient.active) {
+    stompClient.publish({
+      destination: '/app/signal/' + currentRoom,
+      body: JSON.stringify(Object.assign({ from: myId }, payload))
+    });
+  }
+}
+
+async function handleSignal(frame) {
+  let msg;
+  try { msg = JSON.parse(frame.body); } catch (e) { return; }
+  if (!msg || msg.from === myId || !pc) return;
+  try {
+    if (msg.type === 'JOIN') {
+      // A new peer joined — we initiate the offer.
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      signal({ type: 'OFFER', sdp: offer.sdp });
+    } else if (msg.type === 'OFFER' && msg.sdp) {
+      await pc.setRemoteDescription({ type: 'offer', sdp: msg.sdp });
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      signal({ type: 'ANSWER', sdp: answer.sdp });
+    } else if (msg.type === 'ANSWER' && msg.sdp) {
+      await pc.setRemoteDescription({ type: 'answer', sdp: msg.sdp });
+    } else if (msg.type === 'ICE' && msg.candidate) {
+      const cand = typeof msg.candidate === 'string' ? JSON.parse(msg.candidate) : msg.candidate;
+      await pc.addIceCandidate(new RTCIceCandidate(cand));
+    } else if (msg.type === 'LEAVE') {
+      setRoomStatus('The other participant left the room.');
+      const rv = document.getElementById('remote-video');
+      if (rv) rv.srcObject = null;
+    }
+  } catch (err) { setRoomStatus('Signaling error: ' + err.message); }
+}
+
+function joinRoom(roomId) {
+  leaveRoom(); // clean slate
+  currentRoom = roomId;
+  const label = document.getElementById('room-label');
+  if (label) label.textContent = 'Room: ' + roomId;
+  setRoomStatus('Getting camera/mic…');
+
+  if (typeof SockJS === 'undefined' || typeof StompJs === 'undefined') {
+    setRoomStatus('Signaling libraries failed to load (CDN unavailable).');
+    return;
+  }
+
+  pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) signal({ type: 'ICE', candidate: JSON.stringify(e.candidate.toJSON()) });
+  };
+  pc.ontrack = (e) => {
+    const rv = document.getElementById('remote-video');
+    if (rv && e.streams && e.streams[0]) rv.srcObject = e.streams[0];
+    setRoomStatus('Connected — hearing in progress.');
+  };
+  pc.onconnectionstatechange = () => {
+    if (pc && (pc.connectionState === 'failed' || pc.connectionState === 'disconnected')) {
+      setRoomStatus('Connection ' + pc.connectionState + '.');
+    }
+  };
+
+  const gotMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+    ? navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    : Promise.reject(new Error('Camera/mic not available.'));
+
+  gotMedia.then((stream) => {
+    localStream = stream;
+    const lv = document.getElementById('local-video');
+    if (lv) lv.srcObject = stream;
+    stream.getTracks().forEach(t => pc && pc.addTrack(t, stream));
+  }).catch((err) => {
+    setRoomStatus('Media unavailable: ' + err.message + ' (joining listen-only).');
+  }).finally(connectSignaling);
+
+  function connectSignaling() {
+    setRoomStatus('Connecting to signaling…');
+    const sock = new SockJS(WS_URL);
+    stompClient = StompJs.Stomp.over(sock);
+    stompClient.connect(
+      { Authorization: 'Bearer ' + getToken() },
+      () => {
+        stompClient.subscribe('/topic/room/' + currentRoom, handleSignal);
+        signal({ type: 'JOIN' });
+        setRoomStatus('In room — waiting for the other participant…');
+      },
+      (err) => setRoomStatus('Signaling failed: ' + (err && err.message ? err.message : err))
+    );
+  }
+}
+
+function leaveRoom() {
+  if (currentRoom && stompClient && stompClient.active) {
+    try { signal({ type: 'LEAVE' }); } catch (e) { /* ignore */ }
+  }
+  if (stompClient) { try { stompClient.deactivate(); } catch (e) { /* ignore */ } stompClient = null; }
+  if (pc) { try { pc.close(); } catch (e) { /* ignore */ } pc = null; }
+  if (localStream) { localStream.getTracks().forEach(t => { try { t.stop(); } catch (e) { /* ignore */ } }); localStream = null; }
+  const lv = document.getElementById('local-video');
+  const rv = document.getElementById('remote-video');
+  if (lv) lv.srcObject = null;
+  if (rv) rv.srcObject = null;
+  currentRoom = null;
+}
+
+function bindHearingRoom() {
+  const btn = document.getElementById('leave-room-btn');
+  if (btn) btn.addEventListener('click', () => { leaveRoom(); location.hash = '#/cases'; });
+}
+
+/* ---------- boot ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  bindAuth();
+  bindFileCase();
+  bindNotifications();
+  bindHearingRoom();
+  if (!isLoggedIn()) location.hash = '#/login';
+  route();
+  setInterval(refreshNotifBadge, 30000);
+  refreshNotifBadge();
+});
+
+</script>
+</body>
+</html>
